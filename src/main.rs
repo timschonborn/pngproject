@@ -12,5 +12,5 @@ fn main() -> Result<()> {
  }
 
 fn test() {
-}
+  }
 
