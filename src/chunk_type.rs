@@ -14,29 +14,43 @@
 //        fn is_safe_to_copy(&self) -> bool
 //    Pass all of the unit tests.
 
+use std::str::FromStr;
+
+// pub type Error = Box<dyn std::error::Error>;
+// pub type Result<T> = std::result::Result<T, Error>;
 
 struct ChunkType {
-    pub data: [u8; 4];
-
+    acillary: u8,
+    private: u8, 
+    reserved: u8,
+    safe_to_copy: u8,
 }
 
 impl ChunkType {
-
-    pub fn try_from(input: [u32; 4]) -> ChunkType {
-        for num in &input {
-            if (num < 65 || (num > 90 && num < 97) || num > 122) {
-                panic!("");
-            }
-            
+    pub fn new(&self, bytes: [u8; 4]) -> Self {
+        ChunkType {
+            acillary: bytes[0],
+            private: bytes[1],
+            reserved: bytes[2],
+            safe_to_copy: bytes[3]
         }
     }
+}
 
-    pub fn from_str(input: &str) -> ChunkType {
-    
+
+impl TryFrom<[u8; 4]> for ChunkType {
+    type Error = ;
+    fn try_from(value: [u32; 4]) -> Result<Self, Self::Error> {
+        
     }
+}
 
+impl FromStr for ChunkType {
+    type Err = str;
 
-
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        
+    }
 }
 
 #[cfg(test)]
