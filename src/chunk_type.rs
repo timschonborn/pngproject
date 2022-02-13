@@ -1,33 +1,12 @@
-
-//    Copy the unit tests below and paste them at the bottom of your chunk_type.rs file.
-//    Write a ChunkType struct with your implementation of PNG chunk types.
-//    Implement TryFrom<[u8; 4]> for your ChunkType.
-//    Implement FromStr for your ChunkType.
-//    Implement Display for your ChunkType.
-//    Implement or derive PartialEq and Eq for your ChunkType
-//    Required methods:
-//        fn bytes(&self) -> [u8; 4]
-//        fn is_valid(&self) -> bool
-//        fn is_critical(&self) -> bool
-//        fn is_public(&self) -> bool
-//        fn is_reserved_bit_valid(&self) -> bool
-//        fn is_safe_to_copy(&self) -> bool
-//    Pass all of the unit tests.
-
-use std::str::FromStr;
-
-// pub type Error = Box<dyn std::error::Error>;
-// pub type Result<T> = std::result::Result<T, Error>;
+use std::{str::FromStr};
 
 #[derive(PartialEq, Eq, Debug)]
-struct ChunkType {
+pub struct ChunkType {
     bytes: [u8; 4],
-    // acillary: u8,
-    // private: u8, 
-    // reserved: u8,
-    // safe_to_copy: u8,
 }
 
+/// 4-bytes that identify the type of the chunk. As described
+/// in the spec: http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html
 impl ChunkType {
     pub fn new(&self, bytes: [u8; 4]) -> Self {
         ChunkType {
@@ -40,7 +19,10 @@ impl ChunkType {
     }
 
     fn is_valid(&self) -> bool {
-        true
+        if !self.bytes.iter().all(|&b| b.is_ascii_alphabetic()) {
+            return false;
+        }
+        return self.is_reserved_bit_valid();
     }
 
     fn is_critical(&self) -> bool{
@@ -66,7 +48,7 @@ impl TryFrom<[u8; 4]> for ChunkType {
     type Error = &'static str;
     fn try_from(bytes: [u8; 4]) -> Result<Self, Self::Error> {
         for byte in &bytes {
-            if byte < &(65 as u8) || byte > &(90 as u8) && byte < &(97 as u8) || byte > &(122 as u8) {
+            if !byte.is_ascii_alphabetic() {
                 return Err("Invalid value");
             }
         }
@@ -83,6 +65,11 @@ impl FromStr for ChunkType {
         if s.len() != 4 {
             return Err("Invalid length");
         }
+        for byte in s.as_bytes() {
+            if !byte.is_ascii_alphabetic() {
+                return  Err("Invalid value");
+            }
+        }
 
         Ok(ChunkType {
             // this cant be right haha
@@ -94,7 +81,7 @@ impl FromStr for ChunkType {
 
 impl std::fmt::Display for ChunkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.bytes)
+        write!(f, "{}", String::from_utf8_lossy(&self.bytes))
     }
 }
 
@@ -176,9 +163,11 @@ mod tests {
     #[test]
     pub fn test_invalid_chunk_is_valid() {
         let chunk = ChunkType::from_str("Rust").unwrap();
+        println!("valid: {}", chunk.is_valid());
         assert!(!chunk.is_valid());
 
         let chunk = ChunkType::from_str("Ru1t");
+        println!("valid: {:?}", chunk);
         assert!(chunk.is_err());
     }
 
