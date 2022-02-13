@@ -26,6 +26,15 @@ pub struct Chunk {
 
 impl Chunk {
 
+  pub fn new(length: u32, chunk_type: ChunkType, data: Vec<u8>, crc: u32) -> Chunk {
+    Chunk {
+      length,
+      chunk_type,
+      data,
+      crc,
+    }
+  }
+
   pub fn length(&self) -> u32 {
     self.length
   }
