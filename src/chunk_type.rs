@@ -14,10 +14,12 @@ impl ChunkType {
         }
     }
 
+    /// Returns bytes of the chunk type
     pub fn bytes(&self) -> [u8; 4] {
         self.bytes
     }
 
+    /// adheres to spec
     fn is_valid(&self) -> bool {
         if !self.bytes.iter().all(|&b| b.is_ascii_alphabetic()) {
             return false;
@@ -25,19 +27,23 @@ impl ChunkType {
         return self.is_reserved_bit_valid();
     }
 
+    /// Ancillary bit (5th bit) 0 = critical, 1 = ancillary
     fn is_critical(&self) -> bool{
         self.bytes[0] & 0b00100000u8 != 0b00100000u8
 
     }
 
+    /// Private bit (5th bit) 0 = public, 1 = private
     fn is_public(&self) -> bool {
         self.bytes[1] & 0b00100000u8 != 0b00100000u8
     }
 
+    /// Reserved bit (5th bit) 0 = reserved, 1 = not reserved (must be 0)
     fn is_reserved_bit_valid(&self) -> bool {
         self.bytes[2] & 0b00100000u8 != 0b00100000u8
     }
 
+    /// Safe-to-copy bit (5th bit) 0 = unsafe to copy, 1 = safe to copy
     fn is_safe_to_copy(&self) -> bool {
         self.bytes[3] & 0b00100000u8 == 0b00100000u8
     }
