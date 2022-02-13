@@ -19,37 +19,82 @@ use std::str::FromStr;
 // pub type Error = Box<dyn std::error::Error>;
 // pub type Result<T> = std::result::Result<T, Error>;
 
+#[derive(PartialEq, Eq, Debug)]
 struct ChunkType {
-    acillary: u8,
-    private: u8, 
-    reserved: u8,
-    safe_to_copy: u8,
+    bytes: [u8; 4],
+    // acillary: u8,
+    // private: u8, 
+    // reserved: u8,
+    // safe_to_copy: u8,
 }
 
 impl ChunkType {
     pub fn new(&self, bytes: [u8; 4]) -> Self {
         ChunkType {
-            acillary: bytes[0],
-            private: bytes[1],
-            reserved: bytes[2],
-            safe_to_copy: bytes[3]
+            bytes
         }
+    }
+
+    pub fn bytes(&self) -> [u8; 4] {
+        self.bytes
+    }
+
+    fn is_valid(&self) -> bool {
+        true
+    }
+
+    fn is_critical(&self) -> bool{
+        self.bytes[0] & 0b00100000u8 != 0b00100000u8
+
+    }
+
+    fn is_public(&self) -> bool {
+        self.bytes[1] & 0b00100000u8 != 0b00100000u8
+    }
+
+    fn is_reserved_bit_valid(&self) -> bool {
+        self.bytes[2] & 0b00100000u8 != 0b00100000u8
+    }
+
+    fn is_safe_to_copy(&self) -> bool {
+        self.bytes[3] & 0b00100000u8 == 0b00100000u8
     }
 }
 
 
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error = ;
-    fn try_from(value: [u32; 4]) -> Result<Self, Self::Error> {
+    type Error = &'static str;
+    fn try_from(bytes: [u8; 4]) -> Result<Self, Self::Error> {
+        for byte in &bytes {
+            if byte < &(65 as u8) || byte > &(90 as u8) && byte < &(97 as u8) || byte > &(122 as u8) {
+                return Err("Invalid value");
+            }
+        }
+        Ok(ChunkType {
+            bytes
+        })
+    }
+}   
+
+impl FromStr for ChunkType {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.len() != 4 {
+            return Err("Invalid length");
+        }
+
+        Ok(ChunkType {
+            // this cant be right haha
+            bytes: s.bytes().into_iter().collect::<Vec<u8>>().as_slice().try_into().unwrap()
         
+        })
     }
 }
 
-impl FromStr for ChunkType {
-    type Err = str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        
+impl std::fmt::Display for ChunkType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.bytes)
     }
 }
 
