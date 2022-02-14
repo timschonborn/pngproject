@@ -78,9 +78,7 @@ impl FromStr for ChunkType {
         }
 
         Ok(ChunkType {
-            // this cant be right haha
-            bytes: s.bytes().into_iter().collect::<Vec<u8>>().as_slice().try_into().unwrap()
-        
+            bytes: s.as_bytes().try_into().unwrap()
         })
     }
 }
