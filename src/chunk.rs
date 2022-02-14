@@ -65,15 +65,15 @@ impl TryFrom<&[u8]> for Chunk {
     }
 
     let checksum = crc32fast::hash(&bytes[4..bytes.len() - 4]);
-    if checksum != u32::from_be_bytes(array_from_slice(&bytes[bytes.len() - 4..])) {
+    if checksum != u32::from_be_bytes(array4_from_slice(&bytes[bytes.len() - 4..])) {
       return Err("Invalid checksum");
     }
     
     Ok(Chunk {
-      length: u32::from_be_bytes(array_from_slice(&bytes[..4])),
-      chunk_type: ChunkType::try_from(array_from_slice(&bytes[4..8]))?,
+      length: u32::from_be_bytes(array4_from_slice(&bytes[..4])),
+      chunk_type: ChunkType::try_from(array4_from_slice(&bytes[4..8]))?,
       data: bytes[8..bytes.len() - 4].to_vec(),
-      crc: u32::from_be_bytes(array_from_slice(&bytes[bytes.len() - 4..])),
+      crc: u32::from_be_bytes(array4_from_slice(&bytes[bytes.len() - 4..])),
     })
   }
 }
@@ -87,7 +87,7 @@ impl std::fmt::Display for Chunk {
 
 /// Turn a slice of bytes into an array of length 4, needed for TryFrom.
 /// This can probably be improved, but I'm not sure how
-fn array_from_slice(slice: &[u8]) -> [u8; 4] {
+pub fn array4_from_slice(slice: &[u8]) -> [u8; 4] {
   let mut arr = [0; 4];
   for (i, &item) in slice.iter().enumerate() {
       arr[i] = item;
