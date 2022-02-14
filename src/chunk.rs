@@ -63,19 +63,25 @@ impl TryFrom<&[u8]> for Chunk {
     if bytes.len() < 12 {
       return Err("Invalid length");
     }
+
+    let checksum = crc32fast::hash(&bytes[4..bytes.len() - 4]);
+    if checksum != u32::from_be_bytes(array_from_slice(&bytes[bytes.len() - 4..])) {
+      return Err("Invalid checksum");
+    }
     
     Ok(Chunk {
       length: u32::from_be_bytes(array_from_slice(&bytes[..4])),
       chunk_type: ChunkType::try_from(array_from_slice(&bytes[4..8]))?,
       data: bytes[8..bytes.len() - 4].to_vec(),
-      crc: u32::from_be_bytes(array_from_slice(&bytes[..4])),
+      crc: u32::from_be_bytes(array_from_slice(&bytes[bytes.len() - 4..])),
     })
   }
 }
 
 impl std::fmt::Display for Chunk {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Chunk {{ length: {}, chunk_type: {}, data: {:?}, crc: {} }}", self.length, self.chunk_type, self.data, self.crc)
+        write!(f, "Chunk {{ length: {}, chunk_type: {}, data: {:?}, crc: {} }}", 
+          self.length, self.chunk_type, self.data, self.crc)
     }
 }
 
