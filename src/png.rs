@@ -1,6 +1,8 @@
-use crate::chunk::{Chunk, array_from_slice};
-use std::fmt::Error;
+use std::str::FromStr;
 
+use crate::{chunk::{Chunk, array4_from_slice}, chunk_type::{ChunkType, self}};
+// use std::fmt::Error;
+use crate::{Error, Result};
 
 pub struct Png {
   header: [u8; 8],
@@ -17,29 +19,95 @@ impl Png {
     }
   }
 
-  pub fn header(&self) -> &[u8; 8] {
-    &self.header
+  pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
+		Png { header: Png::STANDARD_HEADER, chunks }
   }
 
-  pub fn chunks(&self) -> &Vec<Chunk> {
-    &self.chunks
+  pub fn append_chunk(&mut self, chunk: Chunk) {
+		self.chunks.push(chunk);
   }
+
+  pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+		let mut found_chunk: Option<Chunk> = None;
+		let mut chunks_copy = self.chunks.clone();
+		let pos = self.chunks.iter().position(|c| c.chunk_type() == &ChunkType::from_str(chunk_type).unwrap());
+		match pos {
+			Some(pos) => {
+				found_chunk = Some(self.chunks[pos].clone());
+				chunks_copy.remove(pos);
+				self.chunks = chunks_copy;
+				return Ok(found_chunk.unwrap().clone());
+			},
+			None => return Err(Box::new(std::fmt::Error))
+		}
+	}
+
+  pub fn header(&self) -> &[u8; 8] {
+      &self.header
+  }
+
+  pub fn chunks(&self) -> &[Chunk] {
+      &self.chunks
+  }
+
+  fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+      self.chunks.iter().find(|&c| c.chunk_type() == &ChunkType::from_str(chunk_type).unwrap())
+  }
+
+  fn as_bytes(&self) -> Vec<u8> {
+		let mut bytes = Vec::<u8>::new();
+		bytes.extend_from_slice(&self.header);
+		for chunk in &self.chunks {
+			bytes.extend_from_slice(&chunk.as_bytes());
+		}
+		bytes
+  }
+
 }
 
 impl TryFrom<&[u8]> for Png {
-  type Error = &'static str;
+  type Error = Error;
 
-  fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+  fn try_from(bytes: &[u8]) -> Result<Self> {
+    // too small
     if bytes.len() < 8 {
-      return Err("Invalid length");
+        return Err(Box::new(std::fmt::Error));
+    }
+    // header identifying png file
+    if bytes[..8] != Png::STANDARD_HEADER {
+        return Err(Box::new(std::fmt::Error));
+    }
+
+    let mut chunks = Vec::<Chunk>::new();
+    // iterate over bytes and read one chunk at a time
+    let mut cursor = 8; // loc of first byte to read
+    while cursor < bytes.len() {
+        // first four bytes is length of chunk data
+        // so total chunk is length (4) + type (4) + data + crc (4) = 12 + length
+        let length = u32::from_be_bytes(array4_from_slice(&bytes[cursor..cursor + 4])) as usize;
+				println!("length: {}", length);
+        // cursor += 4;
+        // let chunk_type = ChunkType::try_from(array4_from_slice(&bytes[cursor..cursor + 4]));
+        // cursor += 4;
+        // let chunk_data = bytes[cursor..cursor + length].to_vec();
+        // cursor += length;
+        // let crc = u32::from_be_bytes(array4_from_slice(&bytes[cursor..cursor + 4]));
+        chunks.push(Chunk::try_from(&bytes[cursor..cursor + 4 + length + 4 + 4]).unwrap());
+        cursor += 12 + length
     }
 
     Ok(Png{
       header: array8_from_slice(&bytes[..8]),
-      chunks: bytes[8..].to_vec()
+      chunks
     })
 
 }}
+
+impl std::fmt::Display for Png {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.as_bytes())
+    }
+}
 
 /// Turn a slice of bytes into an array of length 4, needed for TryFrom.
 /// This can probably be improved, but I'm not sure how
@@ -51,59 +119,6 @@ pub fn array8_from_slice(slice: &[u8]) -> [u8; 8] {
   arr
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// fn try_from(bytes: [u8]) -> Result<Self, Self::Error> {
-//   if bytes.len() < 8 {
-//     return Err("Invalid length");
-//   }
-
-//   if bytes[0..8] != Png::STANDARD_HEADER {
-//     return Err("Invalid header");
-//   }
-
-//   let mut chunks = Vec::new();
-//   let mut cursor = 8;
-
-//   while cursor < bytes.len() {
-//     let length = u32::from_be_bytes(bytes[cursor..cursor + 4].try_into().unwrap());
-//     let chunk_type = ChunkType::try_from(bytes[cursor + 4..cursor + 8].try_into().unwrap());
-//     let data = bytes[cursor + 8..cursor + 8 + length as usize].to_vec();
-//     let crc = u32::from_be_bytes(bytes[cursor + 8 + length as usize..cursor + 12 + length as usize].try_into().unwrap());
-
-//     chunks.push(Chunk::new(length, chunk_type, data, crc));
-
-//     cursor += 12 + length as usize;
-//   }
-
-//   Ok(Png {
-//     header: Png::STANDARD_HEADER,
-//     chunks,
-//   })
-// }
 #[cfg(test)]
 mod tests {
     use super::*;
