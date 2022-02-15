@@ -1,6 +1,7 @@
 use std::{str::FromStr};
+use crate::{Result, Error};
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ChunkType {
     bytes: [u8; 4],
 }
@@ -51,11 +52,11 @@ impl ChunkType {
 
 
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error = &'static str;
-    fn try_from(bytes: [u8; 4]) -> Result<Self, Self::Error> {
+    type Error = Error;
+    fn try_from(bytes: [u8; 4]) -> Result<Self> {
         for byte in &bytes {
             if !byte.is_ascii_alphabetic() {
-                return Err("Invalid value");
+                return Err(Box::new(std::fmt::Error));
             }
         }
         Ok(ChunkType {
@@ -65,15 +66,15 @@ impl TryFrom<[u8; 4]> for ChunkType {
 }   
 
 impl FromStr for ChunkType {
-    type Err = &'static str;
+    type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> Result<Self> {
         if s.len() != 4 {
-            return Err("Invalid length");
+            return Err(Box::new(std::fmt::Error));
         }
         for byte in s.as_bytes() {
             if !byte.is_ascii_alphabetic() {
-                return  Err("Invalid value");
+                return Err(Box::new(std::fmt::Error));
             }
         }
 

@@ -1,7 +1,7 @@
-use std::string::FromUtf8Error;
+use crate::{Result, Error};
 
 use crate::chunk_type::ChunkType;
-
+#[derive(Debug, Clone)]
 pub struct Chunk {
   length: u32,
   chunk_type: ChunkType,
@@ -10,63 +10,72 @@ pub struct Chunk {
 }
 
 
-// Copy the unit tests below and paste them at the bottom of your chunk.rs file.
-// Write a Chunk struct with your implementation of PNG chunks.
-// Implement TryFrom<&[u8]> for your Chunk.
-// Implement Display for your Chunk.
-// Required methods:
-//     fn length(&self) -> u32
-//     fn chunk_type(&self) -> &ChunkType
-//     fn data(&self) -> &[u8]
-//     fn crc(&self) -> u32
-//     fn data_as_string(&self) -> Result<String>
-//     fn as_bytes(&self) -> Vec<u8>
-// Pass all of the unit tests.
-
-
 impl Chunk {
-
-  pub fn new(length: u32, chunk_type: ChunkType, data: Vec<u8>, crc: u32) -> Chunk {
+  /// Creates a new chunk and calculates the crc and length
+  pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
+    // merge chunk_type and data for calculating crc
+    let mut bytes = chunk_type.bytes().to_vec();
+    bytes.extend(&data);
+    let crc = crc32fast::hash(&bytes);
     Chunk {
-      length,
+      length: data.len() as u32,
       chunk_type,
       data,
-      crc,
+      crc
     }
   }
 
+  /// Returns the length of the chunk data
   pub fn length(&self) -> u32 {
     self.length
   }
 
+  /// Returns the chunk type
   pub fn chunk_type(&self) -> &ChunkType {
     &self.chunk_type
   }
 
+  /// Returns the chunk data
   pub fn data(&self) -> &[u8] {
     &self.data
   }
 
+  /// Returns the crc of the chunk
   pub fn crc(&self) -> u32 {
     self.crc
   }
 
-  pub fn data_as_string(&self) -> Result<String, FromUtf8Error> {
-    String::from_utf8(self.data.clone())
+  /// Returns the chunk bytes as utf8 string
+  pub fn data_as_string(&self) -> Result<String> {
+    match String::from_utf8(self.data.clone()) {
+      Ok(res) => return Ok(res),
+      Err(res) => return Err(Box::new(std::fmt::Error))
+    }
   }
 
+  /// Returns the chunk as bytes
+  pub fn as_bytes(&self) -> Vec<u8> {
+    let mut bytes = Vec::<u8>::new();
+    bytes.extend_from_slice(&self.length.to_be_bytes());
+    bytes.extend_from_slice(&self.chunk_type.bytes());
+    bytes.extend(&self.data);
+    bytes.extend_from_slice(&self.crc.to_be_bytes());
+    bytes
+  }
 }
 
+/// Try to convert slice of bytes to chunk, assumes the bytes
+/// are the complete chunk including the crc
 impl TryFrom<&[u8]> for Chunk {
-  type Error = &'static str;
-  fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
+  type Error = Error;
+  fn try_from(bytes: &[u8]) -> Result<Self> {
     if bytes.len() < 12 {
-      return Err("Invalid length");
+      return Err(Box::new(std::fmt::Error));
     }
 
     let checksum = crc32fast::hash(&bytes[4..bytes.len() - 4]);
     if checksum != u32::from_be_bytes(array4_from_slice(&bytes[bytes.len() - 4..])) {
-      return Err("Invalid checksum");
+      return Err(Box::new(std::fmt::Error));
     }
     
     Ok(Chunk {
@@ -77,6 +86,7 @@ impl TryFrom<&[u8]> for Chunk {
     })
   }
 }
+
 
 impl std::fmt::Display for Chunk {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
