@@ -35,7 +35,7 @@ pub enum Cmd {
     #[clap(parse(from_os_str), value_name = "FILE")]
     file: PathBuf,
 
-    #[clap(parse(from_str), value_name="CHUNK_TYPE", default_value="")]
+    #[clap(parse(try_from_str), value_name="CHUNK_TYPE", default_value="")]
     chunk_type: ChunkType,
 
     message: String,
