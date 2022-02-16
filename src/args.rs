@@ -5,8 +5,6 @@ use clap::{AppSettings, Parser, Subcommand};
 
 use crate::chunk_type::ChunkType;
 
-
-
 impl Display for Cmd {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     match self {
