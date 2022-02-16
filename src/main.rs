@@ -22,7 +22,5 @@ fn main() -> Result<()> {
       args::Cmd::Print => println!("{}", command), // commands::print::print(args.input, args.output)?,
     }
   }
-    
-
   Ok(())
 }

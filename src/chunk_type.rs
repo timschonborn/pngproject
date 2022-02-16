@@ -63,7 +63,25 @@ impl TryFrom<[u8; 4]> for ChunkType {
       bytes
     })
   }
-}   
+}  
+
+impl TryFrom<&str> for ChunkType {
+  type Error = Error;
+  fn try_from(s: &str) -> Result<Self> {
+    let bytes = s.as_bytes();
+    if bytes.len() != 4 {
+      return Err(Box::new(std::fmt::Error));
+    }
+    for byte in bytes {
+      if !byte.is_ascii_alphabetic() {
+          return Err(Box::new(std::fmt::Error));
+      }
+    }
+    Ok(ChunkType {
+      bytes: [bytes[0], bytes[1], bytes[2], bytes[3]]
+    })
+  }
+}
 
 impl FromStr for ChunkType {
   type Err = Error;
@@ -87,13 +105,13 @@ impl FromStr for ChunkType {
 /// FIXME added this for making #[clap(parse(from_str))] work
 /// but since this op can panic TryFrom is the better trait,
 /// which I couldn't get working in parse()
-impl From<&str> for ChunkType {
-  fn from(s: &str) -> Self {
-    ChunkType {
-      bytes: s.as_bytes().try_into().unwrap()
-    }
-  }
-}
+// impl From<&str> for ChunkType {
+//   fn from(s: &str) -> Self {
+//     ChunkType {
+//       bytes: s.as_bytes().try_into().unwrap()
+//     }
+//   }
+// }
 
 impl std::fmt::Display for ChunkType {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
