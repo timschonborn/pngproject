@@ -1,5 +1,5 @@
 use std::{str::FromStr};
-use crate::{Result, Error};
+use crate::{Result, Error, chunk::Chunk};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ChunkType {
@@ -81,6 +81,14 @@ impl FromStr for ChunkType {
     Ok(ChunkType {
       bytes: s.as_bytes().try_into().unwrap()
     })
+  }
+}
+
+impl From<&str> for ChunkType {
+  fn from(s: &str) -> Self {
+    ChunkType {
+      bytes: s.as_bytes().try_into().unwrap()
+    }
   }
 }
 
