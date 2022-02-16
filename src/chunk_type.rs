@@ -84,6 +84,9 @@ impl FromStr for ChunkType {
   }
 }
 
+/// FIXME added this for making #[clap(parse(from_str))] work
+/// but since this op can panic TryFrom is the better trait,
+/// which I couldn't get working in parse()
 impl From<&str> for ChunkType {
   fn from(s: &str) -> Self {
     ChunkType {

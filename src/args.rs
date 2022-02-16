@@ -1,23 +1,16 @@
 use std::fmt::Display;
+use std::path::PathBuf;
+use std::ffi::OsString;
+use clap::{AppSettings, Parser, Subcommand};
 
-use clap::{Parser, Subcommand};
+use crate::chunk_type::ChunkType;
 
-#[derive(Subcommand, Debug, Clone)]
-pub enum Cmd {
-  /// Encode a png file
-  Encode,
-  /// Decode a png file
-  Decode,
-  /// Remove a chunk from a png file
-  Remove,
-  /// Print a png file
-  Print
-}
+
 
 impl Display for Cmd {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     match self {
-      Cmd::Encode => write!(f, "encode"),
+      Cmd::Encode {file, chunk_type, message, output} => write!(f, "encode {:?} {}", output, chunk_type),
       Cmd::Decode => write!(f, "decode"),
       Cmd::Remove => write!(f, "remove"),
       Cmd::Print => write!(f, "print")
@@ -25,17 +18,38 @@ impl Display for Cmd {
   }
 }
 
-/// Testing Clap
+/// Encode, decode, modify or print a png file
 #[derive(Parser, Debug)]
-#[clap(author, version, about)]
+#[clap(global_setting(AppSettings::DeriveDisplayOrder))]
+#[clap(author = "Tim Schoenborn <tim@schonborn.nl>", version, about)]
 pub struct Args {
-  #[clap(subcommand)]
-  command: Option<Cmd>
+#[clap(subcommand)]
+  pub command: Option<Cmd>,
 }
 
-impl Args {
-  pub fn command(&self) -> &Option<Cmd> {
-    &self.command
-  }
+#[derive(Subcommand, Debug)]
+pub enum Cmd {
+  /// Encode a png file
+  #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+  Encode {
+    #[clap(parse(from_os_str), value_name = "FILE")]
+    file: PathBuf,
+
+    #[clap(parse(from_str), value_name="CHUNK_TYPE", default_value="")]
+    chunk_type: ChunkType,
+
+    message: String,
+
+    output: Option<PathBuf>,
+  },
+  /// Decode a png file
+  #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+  Decode,
+  /// Remove a chunk from a png file
+  #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+  Remove,
+  /// Print a png file
+  #[clap(setting(AppSettings::ArgRequiredElseHelp))]
+  Print
 }
 
