@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use chunk_type::ChunkType;
 use clap::Parser;
 
 mod args;
@@ -10,6 +11,22 @@ mod png;
 
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
 pub type Result<T> = std::result::Result<T, Error>;
+
+
+fn encode(file: &PathBuf, chunk_type: &ChunkType, message: &String, output: Option<&PathBuf>) -> Result<()> {
+  todo!()  
+  // let mut png = png::Png::from_file(file)?;
+    // let chunk = chunk::Chunk::new(chunk_type, message)?;
+    // png.add_chunk(chunk)?;
+    // png.write_file(output)?;
+    // Ok(())
+
+  
+}
+
+fn decode(file: &PathBuf, chunk_type: &ChunkType) -> Result<()> {
+  todo!()
+}
 
 fn main() -> Result<()> {
   let args = args::Args::parse();
@@ -24,3 +41,4 @@ fn main() -> Result<()> {
   }
   Ok(())
 }
+

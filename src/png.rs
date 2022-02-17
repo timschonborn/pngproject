@@ -19,6 +19,32 @@ impl Png {
     }
   }
 
+  pub fn from_file(file: &std::path::Path) -> Result<Png> {
+    todo!()
+    // let mut file = std::fs::File::open(file)?;
+    // let mut header = [0; 8];
+    // file.read_exact(&mut header)?;
+    // if header != Png::STANDARD_HEADER {
+    //   return Err(Error::new("Invalid header"));
+    // }
+    // let mut chunks = Vec::new();
+    // loop {
+    //   let mut chunk_header = [0; 8];
+    //   file.read_exact(&mut chunk_header)?;
+    //   let chunk_type = ChunkType::from_str(&chunk_header[0..4])?;
+    //   let chunk_length = u32::from_be_bytes(array4_from_slice(&chunk_header[4..8]));
+    //   let mut chunk_data = vec![0; chunk_length as usize];
+    //   file.read_exact(&mut chunk_data)?;
+    //   chunks.push(Chunk::new(chunk_type, chunk_data));
+    //   let mut crc = [0; 4];
+    //   file.read_exact(&mut crc)?;
+    //   if chunk_type == ChunkType::IEND {
+    //     break;
+    //   }
+    // }
+    // Ok(Png::new(header, chunks))
+  }
+
   pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
     Png { header: Png::STANDARD_HEADER, chunks }
   }
