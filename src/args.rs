@@ -9,7 +9,7 @@ impl Display for Cmd {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     match self {
       Cmd::Encode {file, chunk_type, message, output} => write!(f, "encode {:?} {}", output, chunk_type),
-      Cmd::Decode => write!(f, "decode"),
+      Cmd::Decode {file, chunk_type} => write!(f, "decode"),
       Cmd::Remove => write!(f, "remove"),
       Cmd::Print => write!(f, "print")
     }
@@ -33,16 +33,25 @@ pub enum Cmd {
     #[clap(parse(from_os_str), value_name = "FILE")]
     file: PathBuf,
 
-    #[clap(parse(try_from_str), value_name="CHUNK_TYPE", default_value="")]
+    #[clap(parse(try_from_str), value_name="CHUNK_TYPE")]
     chunk_type: ChunkType,
 
+    #[clap(value_name = "MESSAGE", default_value="")]
     message: String,
 
+    #[clap(parse(from_os_str), value_name = "OUTPUT")]
     output: Option<PathBuf>,
   },
   /// Decode a png file
   #[clap(setting(AppSettings::ArgRequiredElseHelp))]
-  Decode,
+  Decode {
+    #[clap(parse(from_os_str), value_name = "FILE")]
+    file: PathBuf,
+
+    #[clap(parse(try_from_str), value_name="CHUNK_TYPE")]
+    chunk_type: ChunkType,
+  },
+  
   /// Remove a chunk from a png file
   #[clap(setting(AppSettings::ArgRequiredElseHelp))]
   Remove,
