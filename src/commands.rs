@@ -24,7 +24,7 @@ pub fn encode(file: &PathBuf, chunk_type: &ChunkType, message: &str, output: &Op
 
   let mut png = Png::try_from(buffer.as_slice()).unwrap();
 
-  let chunk = chunk_from_strings("tIME", "Attack at noon!").unwrap();
+  let chunk = chunk_from_strings(&chunk_type.to_string(), message).unwrap();
 
   png.insert_chunk(chunk);
 
