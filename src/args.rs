@@ -1,6 +1,5 @@
 use std::fmt::Display;
 use std::path::PathBuf;
-use std::ffi::OsString;
 use clap::{AppSettings, Parser, Subcommand};
 
 use crate::chunk_type::ChunkType;
@@ -33,7 +32,7 @@ pub enum Cmd {
     #[clap(parse(from_os_str), value_name = "FILE")]
     file: PathBuf,
 
-    #[clap(parse(try_from_str), value_name="CHUNK_TYPE", default_value="")]
+    #[clap(parse(try_from_str), value_name="CHUNK_TYPE")]
     chunk_type: ChunkType,
 
     message: String,

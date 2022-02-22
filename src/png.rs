@@ -12,21 +12,31 @@ pub struct Png {
 impl Png {
   pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
 
-  pub fn new(header: [u8; 8], chunks: Vec<Chunk>) -> Png {
+  fn new(header: [u8; 8], chunks: Vec<Chunk>) -> Png {
     Png {
       header,
       chunks,
     }
   }
 
+  /// Create a new png from vector of chunks.
   pub fn from_chunks(chunks: Vec<Chunk>) -> Png {
     Png { header: Png::STANDARD_HEADER, chunks }
   }
 
+  /// Appends chunk to vector of chunks.
   pub fn append_chunk(&mut self, chunk: Chunk) {
     self.chunks.push(chunk);
   }
 
+  /// Insert chunk at second to last position. This way the 'IEND' chunk is last
+  /// and file stays valid.
+  pub fn insert_chunk(&mut self, chunk: Chunk) {
+    // appends chunk at second last position
+    self.chunks.insert(self.chunks.len() - 2, chunk);
+  }
+
+  /// 
   pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
     let mut found_chunk: Option<Chunk> = None;
     let mut chunks_copy = self.chunks.clone();
@@ -54,7 +64,7 @@ impl Png {
     self.chunks.iter().find(|&c| c.chunk_type() == &ChunkType::from_str(chunk_type).unwrap())
   }
 
-  fn as_bytes(&self) -> Vec<u8> {
+  pub fn as_bytes(&self) -> Vec<u8> {
     let mut bytes = Vec::<u8>::new();
     bytes.extend_from_slice(&self.header);
     for chunk in &self.chunks {
