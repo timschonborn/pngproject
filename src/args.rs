@@ -9,8 +9,8 @@ impl Display for Cmd {
     match self {
       Cmd::Encode {file, chunk_type, message, output} => write!(f, "encode {:?} {}", output, chunk_type),
       Cmd::Decode {file, chunk_type} => write!(f, "decode"),
-      Cmd::Remove => write!(f, "remove"),
-      Cmd::Print => write!(f, "print")
+      Cmd::Remove {file, chunk_type} => write!(f, "remove"),
+      Cmd::Print {file} => write!(f, "print")
     }
   }
 }
@@ -53,9 +53,18 @@ pub enum Cmd {
   
   /// Remove a chunk from a png file
   #[clap(setting(AppSettings::ArgRequiredElseHelp))]
-  Remove,
+  Remove {
+    #[clap(parse(from_os_str), value_name = "FILE")]
+    file: PathBuf,
+
+    #[clap(parse(try_from_str), value_name="CHUNK_TYPE")]
+    chunk_type: ChunkType,
+  },
   /// Print a png file
   #[clap(setting(AppSettings::ArgRequiredElseHelp))]
-  Print
+  Print {
+    #[clap(parse(from_os_str), value_name = "FILE")]
+    file: PathBuf,
+  }
 }
 

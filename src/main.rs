@@ -19,8 +19,8 @@ fn main() -> Result<()> {
     match command {
       args::Cmd::Encode {file, chunk_type, message, output} => commands::encode(file, chunk_type, message, output), // commands::encode::encode(args.input, args.output)?,
       args::Cmd::Decode {file, chunk_type} => commands::decode(file, chunk_type), // commands::decode::decode(args.input, args.output)?,
-      args::Cmd::Remove => println!("{}", command), // commands::remove::remove(args.input, args.output, args.chunk_type)?,
-      args::Cmd::Print => println!("{}", command), // commands::print::print(args.input, args.output)?,
+      args::Cmd::Remove {file, chunk_type} => commands::remove(file, chunk_type), // commands::remove::remove(args.input, args.output, args.chunk_type)?,
+      args::Cmd::Print {file} => commands::print(file), // commands::print::print(args.input, args.output)?,
     }
   }
   Ok(())
