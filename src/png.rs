@@ -36,14 +36,14 @@ impl Png {
     self.chunks.insert(self.chunks.len() - 2, chunk);
   }
 
-  /// 
+  /// Remove chunk with type chunk_type from vector of chunks.
+  /// FIXME remove all chunks with given type, error handling..
   pub fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
-    let mut found_chunk: Option<Chunk> = None;
     let mut chunks_copy = self.chunks.clone();
     let pos = self.chunks.iter().position(|c| c.chunk_type() == &ChunkType::from_str(chunk_type).unwrap());
     match pos {
       Some(pos) => {
-        found_chunk = Some(self.chunks[pos].clone());
+        let found_chunk = Some(self.chunks[pos].clone());
         chunks_copy.remove(pos);
         self.chunks = chunks_copy;
         return Ok(found_chunk.unwrap().clone());
@@ -52,18 +52,23 @@ impl Png {
     }
 	}
 
+  /// Returns the header of the png.
   pub fn header(&self) -> &[u8; 8] {
     &self.header
   }
 
+  /// Returns slice of chunks.
   pub fn chunks(&self) -> &[Chunk] {
     &self.chunks
   }
 
-  fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+  /// Returns the chunk with the given chunk type.
+  /// FIXME: multiple matching chunks are not handled.
+  pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
     self.chunks.iter().find(|&c| c.chunk_type() == &ChunkType::from_str(chunk_type).unwrap())
   }
 
+  /// Returns the png as bytes.
   pub fn as_bytes(&self) -> Vec<u8> {
     let mut bytes = Vec::<u8>::new();
     bytes.extend_from_slice(&self.header);
@@ -72,7 +77,6 @@ impl Png {
     }
     bytes
   }
-
 }
 
 impl TryFrom<&[u8]> for Png {
