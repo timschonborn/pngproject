@@ -1,6 +1,3 @@
-use std::path::PathBuf;
-
-use chunk_type::ChunkType;
 use clap::Parser;
 
 mod args;

@@ -1,9 +1,8 @@
-use std::{path::PathBuf, process::Output};
-use std::io;
+use std::{ path::PathBuf };
 use std::io::prelude::*;
 use crate::chunk::Chunk;
 use crate::png::Png;
-use crate::{Error, Result};
+use crate::{ Result };
 use crate::chunk_type::ChunkType;
 
 /// FIXME to utils or chunks

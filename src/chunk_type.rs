@@ -1,5 +1,5 @@
 use std::{str::FromStr};
-use crate::{Result, Error, chunk::Chunk};
+use crate::{Result, Error};
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct ChunkType {
